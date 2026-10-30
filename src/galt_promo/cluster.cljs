@@ -1,13 +1,29 @@
 (ns galt-promo.cluster
   (:require [clojure.string :as str]))
 
-(def cluster-distance-px 80)
 (def cluster-min-size 2)
 
-(defn- close? [{x1 :x y1 :y} {x2 :x y2 :y}]
-  (<= (+ (js/Math.pow (- x1 x2) 2)
-         (js/Math.pow (- y1 y2) 2))
-      (js/Math.pow cluster-distance-px 2)))
+(def ^:private pin-half-width 14)
+(def ^:private pin-half-height 18)
+(def ^:private label-offset-x 16)
+(def ^:private label-padding-px 4)
+
+(defn- label-width [name]
+  (+ 16 (* 7 (count name))))
+
+(defn- footprint [{:keys [x y name]}]
+  [(- x pin-half-width)
+   (- y pin-half-height)
+   (+ x label-offset-x (label-width name))
+   (+ y pin-half-height)])
+
+(defn- close? [a b]
+  (let [[al at ar ab] (footprint a)
+        [bl bt br bb] (footprint b)]
+    (and (<= (- al br) label-padding-px)
+         (<= (- bl ar) label-padding-px)
+         (<= (- at bb) label-padding-px)
+         (<= (- bt ab) label-padding-px))))
 
 (defn- neighbours [users index]
   (keep-indexed (fn [other candidate]

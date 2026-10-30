@@ -2,8 +2,8 @@
   (:require [cljs.test :refer [deftest is testing]]
             [galt-promo.cluster :as cluster]))
 
-(defn- user [id x y & [lat lng]]
-  {:id id :x x :y y :lat (or lat 0) :lng (or lng 0)})
+(defn- user [id x y & [lat lng name]]
+  {:id id :x x :y y :lat (or lat 0) :lng (or lng 0) :name (or name id)})
 
 (deftest groups-crowded-markers
   (testing "more than three nearby users collapse into one marker"
@@ -35,3 +35,21 @@
       (is (= #{:cluster :user} (set (map :type markers))))
       (is (= ["away"] (mapv :id
                             (filter #(= :user (:type %)) markers)))))))
+
+(deftest clusters-only-overlapping-markers
+  (testing "a label covering a neighbouring pin clusters"
+    (let [markers (cluster/cluster-users
+                   [(user "a" 0 0 10 20 "Clever Cougar")
+                    (user "b" 95 0 12 22 "Calm Crane")])]
+      (is (= [:cluster] (mapv :type markers)))
+      (is (= 2 (count (:users (first markers)))))))
+  (testing "the same distance vertically leaves both markers individual"
+    (is (= [:user :user]
+           (mapv :type (cluster/cluster-users
+                        [(user "a" 0 0 10 20 "Clever Cougar")
+                         (user "b" 0 100 12 22 "Calm Crane")])))))
+  (testing "short names do not reach the neighbouring pin"
+    (is (= [:user :user]
+           (mapv :type (cluster/cluster-users
+                        [(user "a" 0 0)
+                         (user "b" 95 0)]))))))
