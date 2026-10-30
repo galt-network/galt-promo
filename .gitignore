@@ -3,7 +3,6 @@ node_modules/
 .cpcache/
 target/
 resources/public/js/
-resources/public/css/
 *.log
 .nrepl-port
 .lsp

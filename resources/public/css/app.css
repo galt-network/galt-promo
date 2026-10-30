@@ -1,0 +1,234 @@
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.app-shell {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #b5b5b5;
+}
+
+.status-dot.is-connected {
+  background: #48c78e;
+}
+
+.status-dot.is-disconnected {
+  background: #ff3860;
+}
+
+.globe-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000011;
+}
+
+.app-brand {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 3;
+  margin: 0;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-shadow: 0 1px 4px #000;
+  pointer-events: none;
+}
+
+.connection-tag {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 4;
+}
+
+.app-tabs {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  z-index: 4;
+  margin: 0;
+  background: rgb(16 16 20 / 78%);
+  border-radius: 6px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.app-tabs ul {
+  border-bottom: 0;
+}
+
+.app-tabs a {
+  color: #fff;
+}
+
+.app-tabs li.is-active a {
+  color: #3273dc;
+}
+
+.users-overlay {
+  position: fixed;
+  top: 5rem;
+  bottom: 1rem;
+  left: 50%;
+  z-index: 3;
+  width: min(960px, calc(100vw - 2rem));
+  padding: 1rem;
+  overflow: auto;
+  background: rgb(255 255 255 / 94%);
+  border-radius: 6px;
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.map-help {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  z-index: 2;
+  max-width: calc(100vw - 2rem);
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+  background: rgb(16 16 20 / 78%);
+  border-radius: 4px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.globe-user-marker {
+  position: relative;
+  width: 28px;
+  height: 36px;
+  color: #48c78e;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 60%));
+}
+
+.globe-user-marker svg {
+  display: block;
+  width: 28px;
+  height: 36px;
+}
+
+.globe-user-label {
+  position: absolute;
+  top: 4px;
+  left: 30px;
+  padding: 1px 6px;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  background: rgb(16 16 20 / 88%);
+  border-radius: 4px;
+}
+
+.globe-cluster-marker {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: #101014;
+  font-weight: 700;
+  cursor: pointer;
+  background: #48c78e;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 60%);
+  pointer-events: auto;
+}
+
+.globe-cluster-marker:hover {
+  background: #6ee7b7;
+}
+
+.cluster-panel {
+  position: fixed;
+  right: 1rem;
+  bottom: 4rem;
+  z-index: 4;
+  width: min(420px, calc(100vw - 2rem));
+  max-height: 50vh;
+  margin: 0;
+  overflow: auto;
+  background: rgb(255 255 255 / 96%);
+}
+
+.cluster-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cluster-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ededed;
+}
+
+.cluster-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.cluster-row .status-dot {
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .app-brand {
+    display: none;
+  }
+
+  .connection-tag {
+    top: auto;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .app-tabs {
+    top: 0.75rem;
+  }
+
+  .users-overlay {
+    top: 4.5rem;
+  }
+
+  .map-help {
+    right: 1rem;
+    bottom: 4rem;
+    left: 1rem;
+    max-width: none;
+    transform: none;
+  }
+
+  .cluster-panel {
+    right: 1rem;
+    bottom: 8rem;
+    left: 1rem;
+    width: auto;
+  }
+}
