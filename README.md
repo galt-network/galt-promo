@@ -6,7 +6,7 @@ Disconnected users remain visible with a red status dot for 10 seconds, then dis
 
 ## Setup
 
-Requires Node 22 or newer (the server uses the built-in `node:sqlite` module).
+Requires Node 22.13 or newer (the server uses the built-in `node:sqlite` module, which is only available without `--experimental-sqlite` from 22.13).
 
 ```sh
 npm install

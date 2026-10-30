@@ -1,6 +1,9 @@
 {
   "name": "galt-promo",
   "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "dev": "shadow-cljs watch ui server",
     "test": "shadow-cljs compile test && node target/test.js",
