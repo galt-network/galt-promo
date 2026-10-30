@@ -132,6 +132,39 @@ body,
   height: 36px;
 }
 
+.globe-user-marker.is-self {
+  color: #3273dc;
+}
+
+.globe-user-marker.is-offline {
+  color: #ff3860;
+}
+
+.globe-user-marker.is-self .globe-user-label {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.globe-rename {
+  position: absolute;
+  top: 0;
+  left: 30px;
+  width: 14rem;
+  padding: 2px 4px;
+  background: rgb(16 16 20 / 92%);
+  border-radius: 4px;
+  pointer-events: auto;
+}
+
+.globe-rename .input {
+  width: 11rem;
+}
+
+.globe-rename .button {
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
 .globe-user-label {
   position: absolute;
   top: 4px;

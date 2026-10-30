@@ -1,5 +1,6 @@
 (ns galt-promo.globe
-  (:require [galt-promo.arcs :as arcs]
+  (:require [clojure.string :as str]
+            [galt-promo.arcs :as arcs]
             [galt-promo.cluster :as cluster]
             ["globe.gl" :default Globe]
             ["solar-calculator" :as solar]
@@ -18,6 +19,11 @@
 
 (def ^:private marker-svg
   "<svg viewBox=\"-4 0 36 36\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M14,0 C21.732,0 28,5.641 28,12.6 C28,23.963 14,36 14,36 C14,36 0,24.064 0,12.6 C0,5.641 6.268,0 14,0 Z\"></path><circle fill=\"#101014\" cx=\"14\" cy=\"14\" r=\"7\"></circle></svg>")
+
+(def ^:private save-icon
+  "<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z\"></path><polyline points=\"17 21 17 13 7 13 7 21\"></polyline><polyline points=\"7 3 7 8 15 8\"></polyline></svg>")
+
+(def ^:private max-name-length 40)
 
 (def ^:private day-night-shader
   {:vertex-shader "
@@ -110,14 +116,96 @@
        (keep #(projected-user globe %))
        cluster/cluster-users))
 
-(defn- user-marker [^js marker]
-  (let [element (.createElement js/document "div")
+(declare draw-markers!)
+
+(defn- marker-class [^js marker]
+  (str "globe-user-marker"
+       (when (aget marker "self?") " is-self")
+       (when-not (aget marker "connected?") " is-offline")))
+
+(defn- finish-editing! [{:keys [editing draft] :as controller} save?]
+  (let [name (str/trim @draft)]
+    (if (and save? (not (str/blank? name)))
+      (-> (js/fetch (str "/name?name=" (js/encodeURIComponent name)) #js {:method "POST"})
+          (.then (fn [response]
+                   (when (.-ok response)
+                     (reset! editing nil)
+                     (draw-markers! controller))))
+          (.catch (fn [_] nil)))
+      (do
+        (reset! editing nil)
+        (draw-markers! controller)))))
+
+(defn- rename-control [{:keys [draft] :as controller}]
+  (let [field (.createElement js/document "div")
+        input-control (.createElement js/document "div")
+        input (.createElement js/document "input")
+        save-control (.createElement js/document "div")
+        save (.createElement js/document "button")]
+    (set! (.-className field) "field has-addons globe-rename")
+    (set! (.-className input-control) "control is-expanded")
+    (set! (.-className input) "input is-small")
+    (set! (.-className save-control) "control")
+    (set! (.-className save) "button is-small is-primary")
+    (set! (.-type input) "text")
+    (set! (.-maxLength input) (str max-name-length))
+    (set! (.-value input) @draft)
+    (set! (.-type save) "button")
+    (set! (.-innerHTML save) save-icon)
+    (.setAttribute input "aria-label" "Your user name")
+    (.setAttribute save "aria-label" "Save name")
+    (.setAttribute save "title" "Save name")
+    (.addEventListener input "input" #(reset! draft (.-value input)))
+    (.addEventListener input "keydown"
+                       (fn [event]
+                         (case (.-key event)
+                           "Enter" (do
+                                     (.preventDefault event)
+                                     (finish-editing! controller true))
+                           "Escape" (do
+                                      (.preventDefault event)
+                                      (finish-editing! controller false))
+                           nil)))
+    (.addEventListener save "click"
+                       (fn [event]
+                         (.preventDefault event)
+                         (.stopPropagation event)
+                         (finish-editing! controller true)))
+    (doseq [node [field input save]]
+      (.addEventListener node "pointerdown" #(.stopPropagation %)))
+    (.appendChild input-control input)
+    (.appendChild save-control save)
+    (.appendChild field input-control)
+    (.appendChild field save-control)
+    (js/setTimeout #(.focus input) 0)
+    (js/setTimeout #(.select input) 0)
+    field))
+
+(defn- start-editing! [{:keys [editing draft] :as controller} ^js marker]
+  (reset! editing (aget marker "id"))
+  (reset! draft (aget marker "name"))
+  (draw-markers! controller))
+
+(defn- user-marker [^js marker {:keys [editing] :as controller}]
+  (let [self? (aget marker "self?")
+        element (.createElement js/document "div")
         label (.createElement js/document "span")]
-    (set! (.-className element) "globe-user-marker")
+    (set! (.-className element) (marker-class marker))
     (set! (.-innerHTML element) marker-svg)
-    (set! (.-className label) "globe-user-label")
-    (set! (.-textContent label) (.-name marker))
-    (.appendChild element label)
+    (if (and self? (= (aget marker "id") @editing))
+      (.appendChild element (rename-control controller))
+      (do
+        (set! (.-className label) "globe-user-label")
+        (set! (.-textContent label) (aget marker "name"))
+        (when self?
+          (set! (.-title label) "Click to change your name")
+          (.addEventListener label "pointerdown" #(.stopPropagation %))
+          (.addEventListener label "click"
+                             (fn [event]
+                               (.preventDefault event)
+                               (.stopPropagation event)
+                               (start-editing! controller marker))))
+        (.appendChild element label)))
     element))
 
 (defn- cluster-marker [^js marker on-cluster]
@@ -138,8 +226,8 @@
     (.htmlElementsData ^js @globe
                        (clj->js (markers @globe @users)))))
 
-(defn- schedule-markers! [{:keys [frame] :as controller}]
-  (when (and (not @frame) (not @(:destroyed? controller)))
+(defn- schedule-markers! [{:keys [frame editing] :as controller}]
+  (when (and (not @frame) (not @editing) (not @(:destroyed? controller)))
     (reset! frame
             (js/requestAnimationFrame
              (fn []
@@ -180,9 +268,9 @@
       (set-vector! @material "sunPosition"
                    (aget position 0) (aget position 1)))))
 
-(defn- current-location [{:keys [users current-user-id]}]
+(defn- current-location [{:keys [users]}]
   (some (fn [user]
-          (when (and (= current-user-id (:id user))
+          (when (and (:self? user)
                      (number? (get-in user [:location :lat]))
                      (number? (get-in user [:location :lng])))
             (:location user)))
@@ -260,12 +348,13 @@
                      arc-lifetime-ms)]
           (swap! arc-timers assoc batch-id timer))))))
 
-(defn mount! [node users current-user-id on-cluster]
+(defn mount! [node users on-cluster]
   (let [controller {:globe (atom nil)
                     :node node
                     :users (atom users)
-                    :current-user-id current-user-id
                     :previous-users (atom nil)
+                    :editing (atom nil)
+                    :draft (atom "")
                     :active-arcs (atom [])
                     :arc-timers (atom {})
                     :intro-done? (atom false)
@@ -298,7 +387,7 @@
        (fn [marker]
          (if (= "cluster" (.-type marker))
            (cluster-marker marker on-cluster)
-           (user-marker marker))))
+           (user-marker marker controller))))
       (.htmlElementVisibilityModifier
        (fn [element is-visible]
          (set! (.-opacity element) (if is-visible 1 0))))

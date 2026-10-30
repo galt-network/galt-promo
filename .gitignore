@@ -6,3 +6,4 @@ resources/public/js/
 *.log
 .nrepl-port
 .lsp
+galt-promo.db*

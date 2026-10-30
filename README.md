@@ -2,9 +2,11 @@
 
 A single-page ClojureScript presence demo. A Macchiato server streams user snapshots over SSE, and a re-frame/Bulma UI renders each user's generated alliterative name, browser, IP address, and connection status.
 
-Disconnected users remain visible with a red status dot for 10 seconds, then disappear. Browser tabs use a persistent local-storage client ID so an SSE reconnect keeps the same name.
+Disconnected users remain visible with a red status dot for 10 seconds, then disappear. The server sets an HTTP-only `client-id` cookie and stores each user's last name in SQLite, so returning browsers keep the same name even across server restarts.
 
 ## Setup
+
+Requires Node 22 or newer (the server uses the built-in `node:sqlite` module).
 
 ```sh
 npm install
@@ -24,9 +26,9 @@ In another terminal, run the server:
 npm start
 ```
 
-Open <http://localhost:3000>. Open additional isolated browser windows or profiles to see multiple users. Set `PORT` to change the server port.
+Open <http://localhost:3000>. Open additional isolated browser windows or profiles to see multiple users. Set `PORT` to change the server port and `DATABASE_PATH` to change the SQLite file (default `galt-promo.db`).
 
-The **List** and **Map** tabs show the same presence data, with **Map** open by default. The responsive, full-screen globe uses real-time day/night shading, a blue atmosphere, and a six-second opening rotation that finishes at the current user's location. New online users shoot green arcs to the other users; disconnecting users shoot red arcs. The globe and marker clusters resize with the viewport.
+The **List** and **Map** tabs show the same presence data, with **Map** open by default. Pins are green while online, red during the disconnect grace period, and blue for your own marker. Click your own name on the map to rename yourself inline; the name is saved and reused on your next visit. The responsive, full-screen globe uses real-time day/night shading, a blue atmosphere, and a six-second opening rotation that finishes at the current user's location. New online users shoot green arcs to the other users; disconnecting users shoot red arcs. The globe and marker clusters resize with the viewport.
 
 Opening the app asks for browser location permission; if allowed, precise coordinates replace the IP-based location for that user. If permission is denied, IP geolocation is used. Groups of two or more markers that would overlap at the current zoom collapse into a numbered marker; click it to see the users in a table.
 
@@ -60,7 +62,7 @@ npm run build
 npm start
 ```
 
-Tests cover name generation, the 10-second presence boundary, live HTTP/SSE connect and disconnect behavior, the index route, location validation and lookup, marker clustering, online/offline arc transitions, and re-frame state/subscriptions. `npm run build` produces release builds for both application targets.
+Tests cover name generation, the 10-second presence boundary, live HTTP/SSE connect and disconnect behavior, cookie sessions, SQLite name persistence and renaming, the index route, location validation and lookup, marker clustering, online/offline arc transitions, and re-frame state/subscriptions. `npm run build` produces release builds for both application targets.
 
 ## Edit names
 

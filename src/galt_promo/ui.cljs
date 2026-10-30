@@ -11,13 +11,13 @@
 (defonce globe-controller (atom nil))
 (defonce latest-users (atom []))
 
-(declare request-location! globe-component client-id)
+(declare request-location! globe-component)
 
 (defn- globe-node [node]
   (if node
     (when-not @globe-controller
       (reset! globe-controller
-              (globe/mount! node @latest-users (client-id)
+              (globe/mount! node @latest-users
                             #(rf/dispatch [::events/cluster-selected %]))))
     (when-let [controller @globe-controller]
       (globe/destroy! controller)
@@ -199,16 +199,9 @@
        :else
        [:main.users-overlay [users-view users]])]))
 
-(defn- client-id []
-  (or (.getItem js/localStorage "galt-promo-client-id")
-      (let [id (.randomUUID js/crypto)]
-        (.setItem js/localStorage "galt-promo-client-id" id)
-        id)))
-
 (defn- post-location! []
   (when-let [{:keys [lat lng]} @browser-location]
     (let [params (js/URLSearchParams.)]
-      (.set params "client-id" (client-id))
       (.set params "lat" lat)
       (.set params "lng" lng)
       (-> (js/fetch (str "/location?" (.toString params)) #js {:method "POST"})
@@ -233,7 +226,7 @@
 (defn- connect! []
   (when-let [source @event-source]
     (.close source))
-  (let [source (js/EventSource. (str "/connect?client-id=" (js/encodeURIComponent (client-id))))]
+  (let [source (js/EventSource. "/connect")]
     (reset! event-source source)
     (set! (.-onopen source)
           #(do
