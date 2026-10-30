@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [galt-promo.arcs :as arcs]
             [galt-promo.cluster :as cluster]
+            [galt-promo.events :as events]
             ["globe.gl" :default Globe]
             ["solar-calculator" :as solar]
             ["three" :refer [ShaderMaterial TextureLoader Vector2]]))
@@ -19,9 +20,6 @@
 
 (def ^:private marker-svg
   "<svg viewBox=\"-4 0 36 36\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M14,0 C21.732,0 28,5.641 28,12.6 C28,23.963 14,36 14,36 C14,36 0,24.064 0,12.6 C0,5.641 6.268,0 14,0 Z\"></path><circle fill=\"#101014\" cx=\"14\" cy=\"14\" r=\"7\"></circle></svg>")
-
-(def ^:private save-icon
-  "<svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z\"></path><polyline points=\"17 21 17 13 7 13 7 21\"></polyline><polyline points=\"7 3 7 8 15 8\"></polyline></svg>")
 
 (def ^:private max-name-length 40)
 
@@ -126,12 +124,10 @@
 (defn- finish-editing! [{:keys [editing draft] :as controller} save?]
   (let [name (str/trim @draft)]
     (if (and save? (not (str/blank? name)))
-      (-> (js/fetch (str "/name?name=" (js/encodeURIComponent name)) #js {:method "POST"})
-          (.then (fn [response]
-                   (when (.-ok response)
-                     (reset! editing nil)
-                     (draw-markers! controller))))
-          (.catch (fn [_] nil)))
+      (events/save-name! name
+                         (fn []
+                           (reset! editing nil)
+                           (draw-markers! controller)))
       (do
         (reset! editing nil)
         (draw-markers! controller)))))
@@ -141,17 +137,19 @@
         input-control (.createElement js/document "div")
         input (.createElement js/document "input")
         save-control (.createElement js/document "div")
-        save (.createElement js/document "button")]
+        save (.createElement js/document "button")
+        icon (.createElement js/document "i")]
     (set! (.-className field) "field has-addons globe-rename")
     (set! (.-className input-control) "control is-expanded")
     (set! (.-className input) "input is-small")
     (set! (.-className save-control) "control")
     (set! (.-className save) "button is-small is-primary")
+    (set! (.-className icon) "fa-solid fa-floppy-disk")
     (set! (.-type input) "text")
     (set! (.-maxLength input) (str max-name-length))
     (set! (.-value input) @draft)
     (set! (.-type save) "button")
-    (set! (.-innerHTML save) save-icon)
+    (.setAttribute icon "aria-hidden" "true")
     (.setAttribute input "aria-label" "Your user name")
     (.setAttribute save "aria-label" "Save name")
     (.setAttribute save "title" "Save name")
@@ -174,6 +172,7 @@
     (doseq [node [field input save]]
       (.addEventListener node "pointerdown" #(.stopPropagation %)))
     (.appendChild input-control input)
+    (.appendChild save icon)
     (.appendChild save-control save)
     (.appendChild field input-control)
     (.appendChild field save-control)

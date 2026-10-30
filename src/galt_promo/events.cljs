@@ -38,3 +38,10 @@
 (rf/reg-sub ::connection (fn [db] (:connection db)))
 (rf/reg-sub ::tab (fn [db] (:tab db)))
 (rf/reg-sub ::selected-cluster (fn [db] (:selected-cluster db)))
+
+(defn save-name! [name on-success]
+  (-> (js/fetch (str "/name?name=" (js/encodeURIComponent name)) #js {:method "POST"})
+      (.then (fn [response]
+               (when (.-ok response)
+                 (on-success))))
+      (.catch (fn [_] nil))))

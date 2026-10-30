@@ -1,5 +1,6 @@
 (ns galt-promo.ui
-  (:require [galt-promo.events :as events]
+  (:require [clojure.string :as str]
+            [galt-promo.events :as events]
             [galt-promo.globe :as globe]
             [re-frame.core :as rf]
             [reagent.core :as r]
@@ -30,9 +31,55 @@
    "Safari" "🧭"
    "Other" "🌐"})
 
-(defn- user-row [{:keys [id name browser ip connected?]}]
+(defonce name-editor (r/atom nil))
+
+(defn- start-name-edit! [{:keys [id name]}]
+  (reset! name-editor {:id id :draft name}))
+
+(defn- cancel-name-edit! []
+  (reset! name-editor nil))
+
+(defn- save-name-edit! []
+  (let [name (str/trim (:draft @name-editor))]
+    (when-not (str/blank? name)
+      (events/save-name! name cancel-name-edit!))))
+
+(defn- user-row [{:keys [id name browser ip connected? self?] :as user}]
   [:tr {:key id}
-   [:td name]
+   (if (and self? (= id (:id @name-editor)))
+     [:td [:div.field.has-addons
+           [:div.control.is-expanded
+            [:input.input.is-small
+             {:type "text"
+              :maxLength 40
+              :aria-label "Your user name"
+              :ref (fn [node] (when node (.focus node)))
+              :value (:draft @name-editor)
+              :on-change #(swap! name-editor assoc :draft (.. % -target -value))
+              :on-key-down (fn [event]
+                             (case (.-key event)
+                               "Enter" (do
+                                         (.preventDefault event)
+                                         (save-name-edit!))
+                               "Escape" (do
+                                          (.preventDefault event)
+                                          (cancel-name-edit!))
+                               nil))}]]
+           [:div.control
+            [:button.button.is-small.is-primary
+             {:type "button"
+              :aria-label "Save name"
+              :title "Save name"
+              :on-click save-name-edit!}
+             [:i.fa-solid.fa-floppy-disk {:aria-hidden true}]]]]]
+     [:td (if self?
+            [:a {:href "#"
+                 :title "Click to change your name"
+                 :on-click (fn [event]
+                             (.preventDefault event)
+                             (start-name-edit! user))}
+             name]
+            name)])
    [:td
     [:span.tag.is-light
      [:span.mr-1 {:aria-hidden true} (get browser-icons browser "🌐")]
@@ -40,10 +87,12 @@
    [:td [:span.tag.is-info.is-light ip]]
    [:td
     [:span.status-dot
-     {:class (if connected? "is-connected" "is-disconnected")
+     {:class (cond self? "is-self"
+                   connected? "is-connected"
+                   :else "is-disconnected")
       :role "img"
-      :aria-label (if connected? "Connected" "Disconnected")
-      :title (if connected? "Connected" "Disconnected")}]]])
+      :aria-label (cond self? "You" connected? "Connected" :else "Disconnected")
+      :title (cond self? "You" connected? "Connected" :else "Disconnected")}]]])
 
 (defn- tab-icon [kind]
   (case kind
@@ -88,7 +137,9 @@
           [:h2.subtitle.is-6.mb-0 (str (count members) " users here")]
           [:button.delete {:type "button"
                            :aria-label "Close cluster"
-                           :on-click #(rf/dispatch [::events/cluster-closed])}]]
+                           :on-click #(do
+                                        (rf/dispatch [::events/cluster-closed])
+                                        (cancel-name-edit!))}]]
          [:div.table-container
           [:table.table.is-fullwidth.is-narrow
            [:thead [:tr [:th "Name"] [:th "Browser"] [:th "IP"] [:th "Status"]]]

@@ -31,6 +31,10 @@ body,
   background: #ff3860;
 }
 
+.status-dot.is-self {
+  background: #3273dc;
+}
+
 .globe-container {
   position: fixed;
   inset: 0;
@@ -206,6 +210,10 @@ body,
   margin: 0;
   overflow: auto;
   background: rgb(255 255 255 / 96%);
+}
+
+.cluster-panel .field.has-addons {
+  min-width: 8rem;
 }
 
 .info-cta {
