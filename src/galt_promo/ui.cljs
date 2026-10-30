@@ -159,12 +159,24 @@
      [:p body]]]])
 
 (defn- info-view []
-  [:div.content
-   [:h2.is-header "GALT - Global Alliance for Libertarian Transformation"]
-   [:p "Galt is a set of tools to help freedom minded people find each other and to communicate."]
-   (map-indexed (fn [index section]
-                  ^{:key (:title section)} [info-section section (odd? index)])
-                info-sections)])
+  [:div
+   [:div.content
+    [:h2.is-header "GALT - Global Alliance for Libertarian Transformation"]
+    [:p "Galt is a set of tools to help freedom minded people find each other and to communicate."]
+    (map-indexed (fn [index section]
+                   ^{:key (:title section)} [info-section section (odd? index)])
+                 info-sections)]
+   [:div.box.info-cta
+    [:p.info-cta-text
+     "Follow "
+     [:a {:href "https://x.com/galt_network"
+          :target "_blank"
+          :rel "noopener"} "@galt_network"]
+     " on X to find out more and get updates on the platform."]
+    [:a.button.is-success.is-medium
+     {:href "https://x.com/galt_network"
+      :target "_blank"
+      :rel "noopener"} "Follow @galt_network"]]])
 
 (defn- app []
   (let [users @(rf/subscribe [::events/users])

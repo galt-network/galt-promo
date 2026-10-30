@@ -198,6 +198,25 @@ body,
   margin-left: auto;
 }
 
+.info-cta {
+  padding: 2.5rem 2rem;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(135deg, #101014, #173029);
+  border: 1px solid #48c78e;
+}
+
+.info-cta-text {
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  line-height: 1.4;
+}
+
+.info-cta-text a {
+  color: #6ee7b7;
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
   .app-brand {
     display: none;
