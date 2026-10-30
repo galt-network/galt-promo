@@ -22,7 +22,8 @@
                   #js {:host "127.0.0.1"
                        :port (.-port (.address @instance))
                        :path "/connect?client-id=one"
-                       :headers #js {"User-Agent" "Mozilla/5.0 Firefox/123.0"}}
+                       :headers #js {"User-Agent" "Mozilla/5.0 Firefox/123.0"
+                                      "X-Forwarded-For" "203.0.113.5, 127.0.0.1"}}
                   (fn [^js response]
                     (.setEncoding response "utf8")
                     (.on response "data"
@@ -39,6 +40,7 @@
                                (is (= "one" (:id user)))
                                (is (:connected? user))
                                (is (= "Firefox" (:browser user)))
+                               (is (= "203.0.113.5" (:ip user)))
                                (.destroy @request)
                                (.close @instance)
                                (done)))))))))})))))

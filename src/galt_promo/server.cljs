@@ -34,12 +34,18 @@
 (defn- request-params [{:keys [uri query-string]}]
   (.-searchParams (js/URL. (str "http://localhost" uri "?" query-string))))
 
-(defn- connect [registry {:keys [headers node/request node/response remote-addr] :as req} respond _]
+(defn- client-ip [{:keys [headers remote-addr]}]
+  (str/replace (or (some-> (get headers "x-forwarded-for") (str/split #",") first str/trim)
+                   remote-addr
+                   "")
+               #"^::ffff:" ""))
+
+(defn- connect [registry {:keys [headers node/request node/response] :as req} respond _]
   (let [client-id (.get (request-params req) "client-id")]
     (if (str/blank? client-id)
       (respond {:status 400 :body "client-id is required"})
       (let [existing (get @registry client-id)
-            ip (str/replace remote-addr #"^::ffff:" "")
+            ip (client-ip req)
             taken (into #{} (map :name) (vals @registry))]
         (swap! registry assoc client-id
                {:id client-id
