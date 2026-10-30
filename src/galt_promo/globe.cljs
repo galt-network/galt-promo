@@ -133,19 +133,10 @@
             (on-cluster (mapv #(aget % "id") (.-users marker)))))
     button))
 
-(defn- draw-markers! [{:keys [globe users on-cluster] :as controller}]
+(defn- draw-markers! [{:keys [globe users] :as controller}]
   (when (and @globe (not @(:destroyed? controller)))
     (.htmlElementsData ^js @globe
-                       (clj->js (markers @globe @users)))
-    (.htmlElement ^js @globe
-                  (fn [marker]
-                    (if (= "cluster" (.-type marker))
-                      (cluster-marker marker on-cluster)
-                      (user-marker marker))))
-    (.htmlElementVisibilityModifier
-     ^js @globe
-     (fn [element is-visible]
-       (set! (.-opacity element) (if is-visible 1 0))))))
+                       (clj->js (markers @globe @users)))))
 
 (defn- schedule-markers! [{:keys [frame] :as controller}]
   (when (and (not @frame) (not @(:destroyed? controller)))
@@ -303,6 +294,14 @@
       (.arcDashAnimateTime arc-flight-ms)
       (.arcsTransitionDuration 0)
       (.htmlTransitionDuration 0)
+      (.htmlElement
+       (fn [marker]
+         (if (= "cluster" (.-type marker))
+           (cluster-marker marker on-cluster)
+           (user-marker marker))))
+      (.htmlElementVisibilityModifier
+       (fn [element is-visible]
+         (set! (.-opacity element) (if is-visible 1 0))))
       (.onZoom
        (fn [pov]
          (when-let [material @(:material controller)]

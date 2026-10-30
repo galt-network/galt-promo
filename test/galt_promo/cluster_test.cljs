@@ -16,12 +16,15 @@
       (is (= 4 (count (:users (first markers)))))
       (is (= 13 (:lat (first markers))))
       (is (= 23 (:lng (first markers))))))
-  (testing "three nearby users remain individually clickable"
-    (is (= [:user :user :user]
-           (mapv :type (cluster/cluster-users
-                        [(user "a" 0 0)
-                         (user "b" 10 10)
-                         (user "c" 20 20)])))))
+  (testing "two nearby users collapse into one marker"
+    (let [markers (cluster/cluster-users
+                   [(user "a" 0 0)
+                    (user "b" 10 10)])]
+      (is (= [:cluster] (mapv :type markers)))
+      (is (= 2 (count (:users (first markers)))))))
+  (testing "a lone user remains an individual marker"
+    (is (= [:user]
+           (mapv :type (cluster/cluster-users [(user "a" 0 0)])))))
   (testing "distant users do not join a cluster"
     (let [markers (cluster/cluster-users
                    [(user "a" 0 0)

@@ -175,29 +175,6 @@ body,
   background: rgb(255 255 255 / 96%);
 }
 
-.cluster-list {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.cluster-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #ededed;
-}
-
-.cluster-row:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.cluster-row .status-dot {
-  margin-left: auto;
-}
-
 .info-cta {
   padding: 2.5rem 2rem;
   color: #fff;

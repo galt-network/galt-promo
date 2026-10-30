@@ -2,7 +2,7 @@
   (:require [clojure.string :as str]))
 
 (def cluster-distance-px 80)
-(def cluster-min-size 4)
+(def cluster-min-size 2)
 
 (defn- close? [{x1 :x y1 :y} {x2 :x y2 :y}]
   (<= (+ (js/Math.pow (- x1 x2) 2)

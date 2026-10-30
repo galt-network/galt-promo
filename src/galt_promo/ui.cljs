@@ -89,18 +89,10 @@
           [:button.delete {:type "button"
                            :aria-label "Close cluster"
                            :on-click #(rf/dispatch [::events/cluster-closed])}]]
-         [:div.cluster-list
-          (for [{:keys [id name browser ip connected?]} members]
-            [:div.cluster-row {:key id}
-             [:span.has-text-weight-semibold name]
-             [:span.tag.is-light
-              [:span.mr-1 {:aria-hidden true} (get browser-icons browser "🌐")]
-              [:span browser]]
-             [:span.tag.is-info.is-light ip]
-             [:span.status-dot
-              {:class (if connected? "is-connected" "is-disconnected")
-               :role "img"
-               :aria-label (if connected? "Connected" "Disconnected")}]])]]))))
+         [:div.table-container
+          [:table.table.is-fullwidth.is-narrow
+           [:thead [:tr [:th "Name"] [:th "Browser"] [:th "IP"] [:th "Status"]]]
+           [:tbody (map user-row members)]]]]))))
 
 (defn- globe-view []
   [globe-component @(rf/subscribe [::events/users])])

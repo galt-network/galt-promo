@@ -28,7 +28,7 @@ Open <http://localhost:3000>. Open additional isolated browser windows or profil
 
 The **List** and **Map** tabs show the same presence data, with **Map** open by default. The responsive, full-screen globe uses real-time day/night shading, a blue atmosphere, and a six-second opening rotation that finishes at the current user's location. New online users shoot green arcs to the other users; disconnecting users shoot red arcs. The globe and marker clusters resize with the viewport.
 
-Opening the app asks for browser location permission; if allowed, precise coordinates replace the IP-based location for that user. If permission is denied, IP geolocation is used. Groups of four or more markers that would overlap at the current zoom collapse into a numbered marker; click it to see the users.
+Opening the app asks for browser location permission; if allowed, precise coordinates replace the IP-based location for that user. If permission is denied, IP geolocation is used. Groups of two or more markers that would overlap at the current zoom collapse into a numbered marker; click it to see the users in a table.
 
 Browsers only permit precise location on `localhost` or an HTTPS origin. IP geolocation uses the local GeoLite database bundled by `geoip-lite`, so IP addresses are not sent to a third-party service. Private or unresolvable IPs (such as `127.0.0.1`) have no marker until browser location succeeds. To refresh the database, follow the `geoip-lite` update instructions with a MaxMind license key.
 
