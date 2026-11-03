@@ -114,6 +114,7 @@
 
 (defn- select-tab! [tab]
   (rf/dispatch [::events/tab-selected tab])
+  (set! (.. js/location -hash) (name tab))
   (when (= :map tab)
     (request-location!)))
 
@@ -289,7 +290,11 @@
                                       (js->clj (js/JSON.parse (.-data %)) :keywordize-keys true)]))))
 
 (defn init []
-  (rf/dispatch-sync [::events/initialize])
+  (rf/dispatch-sync [::events/initialize
+                     (events/tab-from-hash (.. js/location -hash))])
   (dom/render [app] (.getElementById js/document "app"))
+  (.addEventListener js/window "hashchange"
+                     #(rf/dispatch [::events/tab-selected
+                                    (events/tab-from-hash (.. js/location -hash))]))
   (connect!)
   (request-location!))

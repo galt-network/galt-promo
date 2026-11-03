@@ -1,12 +1,20 @@
 (ns galt-promo.events
-  (:require [re-frame.core :as rf]))
+  (:require [clojure.string :as str]
+            [re-frame.core :as rf]))
+
+(defn tab-from-hash [hash]
+  (case (str/replace (str hash) #"^#" "")
+    "list" :list
+    "map" :map
+    "info" :info
+    :map))
 
 (rf/reg-event-db
  ::initialize
- (fn [_ _]
+ (fn [_ [_ tab]]
    {:users []
     :connection :connecting
-    :tab :map
+    :tab (or tab :map)
     :selected-cluster nil}))
 
 (rf/reg-event-db
